@@ -13,16 +13,39 @@ type Page struct {
 	Body  []byte
 }
 
-var templates = template.Must(template.ParseFiles("../template/edit.html", "../template/view.html"))
+var templates = template.Must(template.ParseFiles("../template/edit.html", "../template/view.html", "../template/home.html"))
 
 // $: Matches the ending position of the string or the position just before a string-ending newline. In line-based tools, it matches the ending position of any line.
 var validPath = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
 
 func main() {
+	http.HandleFunc("/", homeHandler)
 	http.HandleFunc("/view/", makeHandler(viewHandler))
 	http.HandleFunc("/edit/", makeHandler(editHandler))
 	http.HandleFunc("/save/", makeHandler(saveHandler))
 	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+
+//type Notes []string
+
+type Notes struct {
+	Notes []string
+}
+
+func homeHandler(w http.ResponseWriter, r *http.Request) {
+	files, err := ioutil.ReadDir("../text")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	var n Notes
+	for _, file := range files {
+		name := file.Name()
+		n.Notes = append(n.Notes, name[:len(name)-len(".txt")])
+	}
+	err = templates.ExecuteTemplate(w, "home.html", n)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
