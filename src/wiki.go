@@ -13,7 +13,7 @@ type Page struct {
 	Body  []byte
 }
 
-var templates = template.Must(template.ParseFiles("edit.html", "view.html"))
+var templates = template.Must(template.ParseFiles("../template/edit.html", "../template/view.html"))
 
 // $: Matches the ending position of the string or the position just before a string-ending newline. In line-based tools, it matches the ending position of any line.
 var validPath = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
@@ -68,7 +68,7 @@ func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
 
 func loadPage(title string) (*Page, error) {
 	filename := title + ".txt"
-	body, err := ioutil.ReadFile(filename)
+	body, err := ioutil.ReadFile("../text/" + filename)
 	if err != nil {
 		return nil, err
 	}
@@ -84,5 +84,5 @@ func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
 
 func (p *Page) save() error {
 	filename := p.Title + ".txt"
-	return ioutil.WriteFile(filename, p.Body, 0600)
+	return ioutil.WriteFile("../text/"+filename, p.Body, 0600)
 }
